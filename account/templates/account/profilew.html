@@ -1,0 +1,65 @@
+{% extends 'base.html' %} {# Extiende tu plantilla base para heredar la estructura #}
+{% load static %} {# Si usas CSS o JS estáticos #}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-primary text-white">
+                    <h2 class="mb-0">¡Bienvenido, {{ user.username }}!</h2>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title mb-3">Información de Perfil</h4>
+
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item">
+                            <strong>Nombre de Usuario:</strong> {{ user.username }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Email:</strong> {{ user.email }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Nombre Completo:</strong> {{ user.first_name }} {{ user.last_name }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Fecha de Registro:</strong> {{ user.date_joined|date:"d M, Y" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Último Acceso:</strong> {{ user.last_login|date:"d M, Y H:i" }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Grupos:</strong>
+                            {% if user.groups.all %}
+                                <ul class="list-inline mb-0">
+                                {% for group in user.groups.all %}
+                                    <li class="list-inline-item badge bg-secondary me-1">{{ group.name }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                <span class="text-muted">Ninguno</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+
+                    {# Botones de acción #}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-lg me-md-2">Editar Perfil</a>
+                        {# Si tienes funcionalidades específicas para headhunters o candidatos #}
+                        {% if user.groups.filter(name='headhunter').exists %}
+                            <a href="{% url 'jobs:create_offer' %}" class="btn btn-success btn-lg me-md-2">Crear Nueva Oferta</a>
+                            <a href="{% url 'jobs:my_offers' %}" class="btn btn-info btn-lg">Mis Ofertas Publicadas</a>
+                        {% elif user.groups.filter(name='candidato').exists %}
+                            <a href="{% url 'my_applications' %}" class="btn btn-success btn-lg">Mis Postulaciones</a>
+                        {% endif %}
+                        {# Puedes añadir un enlace para cambiar contraseña, etc. #}
+                        <a href="{% url 'password_change' %}" class="btn btn-outline-secondary btn-lg">Cambiar Contraseña</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

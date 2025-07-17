@@ -1,0 +1,37 @@
+{ % extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+</head>
+
+<body>
+  <h2>Agenda Semanal del Headhunter</h2>
+  <div id="calendar"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        locale: 'es',
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'timeGridWeek,timeGridDay,listWeek'
+        },
+        events: '/api/acciones/',
+      });
+      calendar.render();
+    });
+  </script>
+</body>
+
+</html>
+
+{% endblock %}

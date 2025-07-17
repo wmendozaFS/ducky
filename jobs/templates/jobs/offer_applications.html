@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}Candidaturas para {{ offer.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Candidaturas para <span class="text-primary">{{ offer.title }}</span></h2>
+  <ul class="list-group">
+    {% for app in applications %}
+      <li class="list-group-item">
+        <strong>{{ app.applicant.username }}</strong> – {{ app.created_at|date:"d/m/Y" }}
+        {% if app.message %}
+        <p class="mt-2"><em>{{ app.message }}</em></p>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li class="list-group-item">No hay candidaturas todavía.</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'job_offer_detail' offer.id %}" class="btn btn-secondary mt-4">Volver a la oferta</a>
+</div>
+{% endblock %}

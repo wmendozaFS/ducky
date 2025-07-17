@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Detalles de la oferta</h1>
+
+<p><strong>Título:</strong> {{ offer.title }}</p>
+<p><strong>Descripción:</strong> {{ offer.description }}</p>
+<p><strong>Salario:</strong> {{ offer.salary }}</p>
+<p><strong>Fecha de publicación:</strong> {{ offer.created_at }}</p>
+<p><strong>Empresa:</strong> {{ offer.company_name }}</p>
+<p><strong>Ubicación:</strong> {{ offer.location }}</p>
+
+
+{% if user.is_authenticated and user != offer.headhunter %}
+    <a href="{% url 'apply_to_offer' offer.id %}" class="btn btn-success">Postular</a>
+{% endif %}
+
+<hr>
+
+{% if offer.applications.all %}
+<h2>Postulaciones</h2>
+<ul>
+    {% for application in offer.applications.all %}
+    <li>
+        <strong>{{ application.applicant.username }}</strong> - {{ application.applied_at|date:"d M Y H:i" }}
+        <br>
+        Mensaje: {{ application.message|default:"(sin mensaje)" }}
+        <br>
+        
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No hay aplicaciones para esta oferta.</p>
+{% endif %}
+
+<a href="{% url 'job_offer_list' %}">Volver a la lista de ofertas</a>
+{% endblock %}

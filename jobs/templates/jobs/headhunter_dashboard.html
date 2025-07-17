@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+
+{% block content %}
+
+<h2>Mis Ofertas Publicadas</h2>
+
+<ul>
+    {% for offer in offers %}
+    <li>
+        <strong>{{ offer.title }}</strong> – {{ offer.company_name }}
+        ({{ offer.location }})
+        <a href="{% url 'offer_applications' offer.id %}">Ver
+            candidaturas</a>
+    </li>
+    {% empty %}
+    <li>No tienes ofertas creadas aún.</li>
+
+    {% endfor %}
+</ul>
+<a href="{% url 'create_offer' %}" class="btn btn-primary">Crear Nueva Oferta</a>
+
+{% endblock %}

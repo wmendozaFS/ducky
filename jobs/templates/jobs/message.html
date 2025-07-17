@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Inscripción Exitosa{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h2 class="text-success">Te has inscrito correctamente en la oferta!</h2>
+    <p class="lead">Puedes ver la lista de tus candidaturas aquí:</p>
+    
+    <a href="{% url 'candidature_list' %}" class="btn btn-primary mt-3">
+        Ver mis candidaturas
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load static %}
+<h2>Editar plantilla de mensaje para estado: {{ estado }}</h2>
+<form method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<button type="submit">Guardar plantilla</button>
+</form>
+{% endblock %}
