@@ -37,17 +37,17 @@ class JobOffer(models.Model):
 # Propuesta de modelo Candidatura unificado
 class Candidatura(models.Model):
     offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE, related_name='candidaturas')
-    applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='candidaturas_usuario') # Cambié related_name para evitar conflicto si hay otro 'candidaturas'
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='candidaturas_usuario') # Cambié related_name para evitar conflicto si hay otro 'candidaturas'
     estado = models.CharField(max_length=20, choices=CANDIDATURE_STATUS_CHOICES, default='pendiente')
     mensaje_inicial = models.TextField(blank=True) # Mensaje de la aplicación inicial
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('offer', 'applicant') # Asegura una única aplicación por oferta y usuario
+        unique_together = ('offer', 'user') # Asegura una única aplicación por oferta y usuario
 
     def __str__(self):
-        return f"{self.applicant.username} - {self.offer.title} ({self.estado})"
-    
+        return f"{self.user.username} - {self.offer.title} ({self.estado})"
+
 class StatusMessageTemplate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="status_templates")
     estado = models.CharField(max_length=20, choices=CANDIDATURE_STATUS_CHOICES, default='pendiente')

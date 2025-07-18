@@ -1,5 +1,5 @@
 from django import forms
-from .models import JobOffer, JobApplication, User, Candidatura, StatusMessageTemplate, CANDIDATURE_STATUS_CHOICES
+from .models import JobOffer, Candidatura, StatusMessageTemplate, CANDIDATURE_STATUS_CHOICES
 
 
 class JobOfferForm(forms.ModelForm):
@@ -17,21 +17,6 @@ class JobOfferForm(forms.ModelForm):
             'benefits',
             'is_active',
         ]
-
-
-class JobApplicationForm(forms.ModelForm):
-    class Meta:
-        model = JobApplication
-        fields = ['message']
-        widgets = {
-            'message': forms.Textarea(
-                attrs={
-                    'rows': 4,
-                    'placeholder': 'Puedes incluir un mensaje opcional...'
-                }
-            )
-        }
-
 class CandidatureStatusForm(forms.ModelForm):
     class Meta:
         model = Candidatura
