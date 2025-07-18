@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+CANDIDATURE_STATUS_CHOICES = [
+    ('pendiente', 'Pendiente'),
+    ('aceptado', 'Aceptado'),
+    ('rechazado', 'Rechazado'),
+]
 # Oferta de empleo creada por un headhunter
 class JobOffer(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='job_offers')
@@ -29,63 +34,23 @@ class JobOffer(models.Model):
         return f"{self.title} at {self.company_name}"
 
 # Candidatura de un usuario a una oferta
-class JobApplication(models.Model):
-    offer = models.ForeignKey(
-        JobOffer,
-        on_delete=models.CASCADE,
-        related_name='applications'
-    )
-    applicant = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='job_applications'
-    )
-    applied_at = models.DateTimeField(auto_now_add=True)
-    message = models.TextField(blank=True)
-
-    class Meta:
-        unique_together = ('offer', 'applicant')
-
-    def __str__(self):
-        return f"{self.applicant.username} → {self.offer.title}"
-  
-CANDIDATURE_STATUS_CHOICES = [
-('pendiente', 'Pendiente'),
-('aceptado', 'Aceptado'),
-('rechazado', 'Rechazado'),
-]    
+# Propuesta de modelo Candidatura unificado
 class Candidatura(models.Model):
-   
-
-
-    offer = models.ForeignKey(
-        JobOffer, on_delete=models.CASCADE, related_name='candidaturas'
-    )
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='candidaturas'
-    )
-    estado = models.CharField(
-        max_length=20, choices=CANDIDATURE_STATUS_CHOICES, default='pendiente'
-    )
+    offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE, related_name='candidaturas')
+    applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='candidaturas_usuario') # Cambié related_name para evitar conflicto si hay otro 'candidaturas'
+    estado = models.CharField(max_length=20, choices=CANDIDATURE_STATUS_CHOICES, default='pendiente')
+    mensaje_inicial = models.TextField(blank=True) # Mensaje de la aplicación inicial
     updated_at = models.DateTimeField(auto_now=True)
 
-    mensaje_personalizado = models.TextField(blank=True, null=True)
-    fecha_aplicacion = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('offer', 'applicant') # Asegura una única aplicación por oferta y usuario
 
     def __str__(self):
-        return f"{self.user.username} - {self.offer.title} ({self.estado})"
+        return f"{self.applicant.username} - {self.offer.title} ({self.estado})"
     
 class StatusMessageTemplate(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="status_templates"
-    )
-    estado = models.CharField(
-        max_length=20,
-        choices= CANDIDATURE_STATUS_CHOICES,
-        default='pendiente'
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="status_templates")
+    estado = models.CharField(max_length=20, choices=CANDIDATURE_STATUS_CHOICES, default='pendiente')
     mensaje = models.TextField()
 
     class Meta:
@@ -106,32 +71,15 @@ class AccionOferta(models.Model):
     ]
 
    
-    oferta = models.ForeignKey('jobs.JobOffer', on_delete=models.CASCADE, related_name='acciones')
+    oferta = models.ForeignKey(JobOffer, on_delete=models.CASCADE, related_name='acciones')
     fecha = models.DateTimeField()
     tipo = models.CharField(max_length=20, choices=TIPO_ACCION_CHOICES)
     descripcion = models.TextField()
-    realizada_por = models.ForeignKey(User, on_delete=models.CASCADE)
-
-class Oferta(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ofertas')
-    titulo = models.CharField(max_length=255)
-    empresa = models.CharField(max_length=255, help_text="Nombre de la empresa asociada")
-    descripcion = models.TextField()
-    fecha_publicacion = models.DateField(auto_now_add=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['user']),
-            models.Index(fields=['fecha_publicacion']),
-        ]
-
-    def __str__(self):
-        return f"{self.titulo} - {self.empresa}"
-
+    realizada_por = models.ForeignKey(User, on_delete=models.CASCADE, related_name='acciones_realizadas')
 
 class AgendaAccion(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='acciones')
-    oferta = models.ForeignKey(Oferta, null=True, blank=True, on_delete=models.SET_NULL, related_name='acciones')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='agenda_acciones_creadas')
+    oferta = models.ForeignKey(JobOffer, null=True, blank=True, on_delete=models.SET_NULL, related_name='agenda_acciones_oferta')
     titulo = models.CharField(max_length=255)
     descripcion = models.TextField(blank=True)
     fecha = models.DateField()

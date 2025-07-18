@@ -1,11 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .decorators import headhunter_required
-from .models import JobOffer, JobApplication, Candidatura, StatusMessageTemplate, CANDIDATURE_STATUS_CHOICES
-from .forms import JobOfferForm, JobApplicationForm, CandidatureStatusForm, CambiarEstadoCandidaturaForm, StatusMessageTemplateForm
+from .models import JobOffer, Candidatura, StatusMessageTemplate
+from .forms import JobOfferForm, CandidatureStatusForm, CambiarEstadoCandidaturaForm, StatusMessageTemplateForm
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.contrib.auth.models import User
 
 
 
@@ -173,7 +172,7 @@ def cambiar_estado_candidatura(request, candidature_id):
 
 @login_required
 def candidature_list(request):
-    candidatures = JobApplication.objects.all()
+    candidatures = Candidatura.objects.all()
     return render(request, 'jobs/candidature_list.html', {'candidatures': candidatures},)
 
 
