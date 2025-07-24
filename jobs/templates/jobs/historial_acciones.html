@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<h2>Historial de Acciones para la Oferta: {{ oferta.title }}</h2>
+<ul>
+{% for accion in acciones %}
+<li><strong>{{ accion.get_tipo_display }}</strong> - {{
+
+accion.fecha|date:"d/m/Y H:i" }}<br>
+{{ accion.descripcion }}</li>
+
+{% endfor %}
+</ul>
+
+<a href="{% url 'agregar_accion' oferta.id %}" class="btn btn-primary">Registrar Nueva Acción</a>
+
+{% endblock %}

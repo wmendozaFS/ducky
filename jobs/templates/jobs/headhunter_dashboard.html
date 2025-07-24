@@ -1,25 +1,72 @@
 {% extends 'base.html' %}
 {% load static %}
 
-
+{% block title %}Panel de Control del Headhunter - OpenToJob{% endblock %}
 
 {% block content %}
+<div class="container mt-4">
+    <div class="card-header-actions mb-4">
+        <h2 class="mb-0 text-primary">📊 Panel de Candidaturas</h2>
+        <a href="{% url 'create_offer' %}" class="btn btn-success">
+            <i class="fas fa-plus-circle me-2"></i>Crear Nueva Oferta
+        </a>
+    </div>
 
-<h2>Mis Ofertas Publicadas</h2>
-
-<ul>
-    {% for offer in offers %}
-    <li>
-        <strong>{{ offer.title }}</strong> – {{ offer.company_name }}
-        ({{ offer.location }})
-        <a href="{% url 'offer_applications' offer.id %}">Ver
-            candidaturas</a>
-    </li>
-    {% empty %}
-    <li>No tienes ofertas creadas aún.</li>
-
-    {% endfor %}
-</ul>
-<a href="{% url 'create_offer' %}" class="btn btn-primary">Crear Nueva Oferta</a>
-
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0 text-dark">Mis Candidaturas en Proceso</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if candidaturas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Candidato</th>
+                                <th>Oferta</th>
+                                <th>Estado</th>
+                                <th>Fecha Aplicación</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidatura in candidaturas %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'cambiar_estado_candidatura' candidature_id=candidatura.id %}" class="text-primary text-decoration-none fw-bold">
+                                            {{ candidatura.user.get_full_name|default:candidatura.user.username }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'job_offer_detail' offer_id=candidatura.offer.id %}" class="text-info text-decoration-none">
+                                            {{ candidatura.offer.title }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-status {{ candidatura.estado }}">
+                                            {{ candidatura.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ candidatura.fecha_aplicacion|date:"d M Y" }}</td>
+                                    <td>{{ candidatura.updated_at|date:"d M Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'cambiar_estado_candidatura' candidature_id=candidatura.id %}" class="btn btn-sm btn-outline-primary" title="Gestionar estado">
+                                            <i class="fas fa-tasks"></i> Gestionar
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info m-3" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> No tienes candidaturas para gestionar en tus ofertas.
+                    <a href="{% url 'job_offer_list' %}" class="alert-link ms-2">Explora ofertas</a> o <a href="{% url 'create_offer' %}" class="alert-link">crea una nueva</a>.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

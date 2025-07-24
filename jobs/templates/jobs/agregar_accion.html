@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Registrar Acción para la Oferta: {{ oferta.titulo }}</h2>
+<form method="post">
+{% csrf_token %}
+{{ form.as_p }}
+<button type="submit">Guardar Acción</button>
+</form>
+
+{% endblock %}

@@ -1,27 +1,27 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load crispy_forms_tags %} {# Para que los formularios se vean bien #}
+{% load crispy_forms_tags %}
 
-{% block title %}Crear Oferta de Empleo - OpenToJob{% endblock %}
+{% block title %}Editar Oferta: {{ offer.title }} - OpenToJob{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-7">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">✨ Crear Nueva Oferta de Empleo</h4>
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">✏️ Editar Oferta de Empleo</h4>
                 </div>
                 <div class="card-body">
                     <form method="post" novalidate>
                         {% csrf_token %}
                         {{ form|crispy }}
                         <div class="d-grid gap-2 mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-plus-circle"></i> Crear Oferta
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save"></i> Guardar Cambios
                             </button>
-                            <a href="{% url 'job_offer_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-alt-circle-left"></i> Volver a lista de ofertas
+                            <a href="{% url 'job_offer_detail' offer_id=offer.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times-circle"></i> Cancelar
                             </a>
                         </div>
                     </form>

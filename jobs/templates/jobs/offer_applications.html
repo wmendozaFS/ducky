@@ -1,24 +1,73 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% load crispy_forms_tags %}
-
-{% block title %}Candidaturas para {{ offer.title }}{% endblock %}
+{% block title %}Postulaciones para {{ offer.title }} - OpenToJob{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-  <h2 class="mb-4">Candidaturas para <span class="text-primary">{{ offer.title }}</span></h2>
-  <ul class="list-group">
-    {% for app in applications %}
-      <li class="list-group-item">
-        <strong>{{ app.applicant.username }}</strong> – {{ app.created_at|date:"d/m/Y" }}
-        {% if app.message %}
-        <p class="mt-2"><em>{{ app.message }}</em></p>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li class="list-group-item">No hay candidaturas todavía.</li>
-    {% endfor %}
-  </ul>
-  <a href="{% url 'job_offer_detail' offer.id %}" class="btn btn-secondary mt-4">Volver a la oferta</a>
+    <div class="card-header-actions mb-4">
+        <h2 class="mb-0 text-primary">📩 Postulaciones para: {{ offer.title }}</h2>
+        <a href="{% url 'job_offer_detail' offer_id=offer.id %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Detalles de Oferta
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-users me-2"></i>Candidaturas Recibidas ({{ applications.count }})</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Candidato</th>
+                                <th>Fecha Postulación</th>
+                                <th>Mensaje</th>
+                                <th>Estado Actual</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'cambiar_estado_candidatura' candidature_id=application.id %}" class="text-primary text-decoration-none fw-bold">
+                                        {{ application.user.get_full_name|default:application.user.username }}
+                                    </a>
+                                </td>
+                                <td>{{ application.fecha_aplicacion|date:"d M Y H:i" }}</td>
+                                <td>{{ application.message|default:"(sin mensaje)"|truncatechars:70 }}</td>
+                                <td>
+                                    <span class="badge badge-status {{ application.estado }}">
+                                        {{ application.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>{{ application.updated_at|date:"d M Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'cambiar_estado_candidatura' candidature_id=application.id %}" class="btn btn-sm btn-outline-primary" title="Gestionar estado de la candidatura">
+                                        <i class="fas fa-tasks"></i> Gestionar
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info m-3" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> Todavía no hay postulaciones para esta oferta.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-5 mb-3">
+        <a href="{% url 'job_offer_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a la Lista de Ofertas
+        </a>
+    </div>
 </div>
 {% endblock %}

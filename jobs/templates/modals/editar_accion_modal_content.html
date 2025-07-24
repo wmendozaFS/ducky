@@ -1,0 +1,21 @@
+{# Este archivo es cargado dinámicamente en el modalEditar del template agenda.html #}
+{% load crispy_forms_tags %}
+
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title" id="modalEditarLabel">Editar Acción</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+</div>
+<form id="formEditarAccion" method="post" action="{% url 'editar_accion_ajax' accion_id=accion_id %}"> {# La URL de POST debe ser la misma que la GET en este caso #}
+    {% csrf_token %}
+    <div class="modal-body">
+        {{ form|crispy }}
+        <div id="editActionErrors" class="alert alert-danger d-none mt-3" role="alert"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-success">Guardar Cambios</button>
+        <button type="button" class="btn btn-danger ms-auto" onclick="eliminarAccion({{ accion_id }}); modalEditar.hide();">
+            Eliminar Acción
+        </button>
+    </div>
+</form>

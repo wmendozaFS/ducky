@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4 text-center">Mis Candidaturas</h2>
+
+  {% if candidaturas %}
+    <table class="table table-bordered table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>Oferta</th>
+          <th>Empresa</th>
+          <th>Estado</th>
+          <th>Última actualización</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in candidaturas %}
+        <tr>
+          <td>{{ c.offer.title }}</td>
+          <td>{{ c.offer.company_name }}</td>
+          <td><span class="badge bg-secondary">{{ c.get_estado_display }}</span></td>
+          <td>{{ c.updated_at|date:"d/m/Y H:i" }}</td>
+          <td>
+            <a href="{% url 'job_offer_detail' c.offer.id %}" class="btn btn-sm btn-info">Ver oferta</a>
+            <!-- Aquí podrías agregar botón para retirar candidatura si lo permites -->
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted text-center">No te has postulado a ninguna oferta aún.</p>
+  {% endif %}
+</div>
+{% endblock %}

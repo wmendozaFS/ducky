@@ -1,37 +1,244 @@
-{ % extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+{% load color_filters %}
+{% load crispy_forms_tags %}
+{% block title %}Agenda Semanal del Headhunter - OpenToJob{% endblock %}
+{# Carga de CSS de FullCalendar en el HEAD #}
+{% block extra_head %}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        /* Ajustes menores para el calendario */
+        #calendar {
+            max-width: 1000px;
+            margin: 20px auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .modal-body .form-group {
+            margin-bottom: 1rem; /* Espaciado para los campos de Crispy Forms */
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-{% load static %}
-<!DOCTYPE html>
-<html>
+<div class="container mt-4">
+    <h2 class="mb-4 text-center text-primary">📅 Agenda Semanal del Headhunter</h2>
 
-<head>
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-</head>
+    <div id="calendar"></div>
 
-<body>
-  <h2>Agenda Semanal del Headhunter</h2>
-  <div id="calendar"></div>
+    <div class="text-center mt-4">
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#nuevaAccionModal">
+            <i class="fas fa-plus-circle me-2"></i>Nueva Acción
+        </button>
+    </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var calendarEl = document.getElementById('calendar');
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek',
-        locale: 'es',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'timeGridWeek,timeGridDay,listWeek'
-        },
-        events: '/api/acciones/',
-      });
-      calendar.render();
-    });
-  </script>
-</body>
+    <div class="modal fade" id="nuevaAccionModal" tabindex="-1" aria-labelledby="nuevaAccionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formNuevaAccion" method="post">
+                    {% csrf_token %}
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="nuevaAccionModalLabel">Crear Nueva Acción</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        {{ form|crispy }} {# Usa crispy para que se vea bien #}
+                        <div id="newActionErrors" class="alert alert-danger d-none mt-3" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Guardar Acción</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-</html>
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" id="modalEditarContent">
+                {# Contenido del formulario de edición se cargará aquí vía AJAX #}
+            </div>
+        </div>
+    </div>
 
+    <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalEliminarLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body text-center">
+                    ¿Estás seguro de que deseas eliminar esta acción de la agenda?
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button id="btnConfirmarEliminar" class="btn btn-danger">Sí, Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{# Carga de JS de FullCalendar y tu script personalizado al final del BODY #}
+{% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script> {# Para el idioma español #}
+
+    <script >
+        
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'es', // Usar el locale español
+                height: 'auto', // Ajustar altura automáticamente
+                expandRows: true, // Expande las filas para rellenar la altura disponible
+                slotMinTime: '08:00:00', // Hora de inicio visible en la agenda
+                slotMaxTime: '20:00:00', // Hora de fin visible en la agenda
+                nowIndicator: true, // Muestra una línea para la hora actual
+                allDaySlot: false, // Oculta la sección "todo el día"
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' // Añadir vista mensual
+                },
+                events: "{% url 'api_acciones_headhunter' %}",
+                eventColor: '#28a745', // Un verde para eventos
+                eventTextColor: '#ffffff', // Texto blanco para los eventos
+
+                // Manejar clic en un evento para editar/eliminar
+                eventClick: function(info) {
+                    const actionId = info.event.id;
+                    if (actionId) {
+                        editarAccion(actionId); // Abre el modal de edición
+                    }
+                }
+            });
+            calendar.render();
+
+            // Referencias a los modales
+            const nuevaAccionModal = new bootstrap.Modal(document.getElementById('nuevaAccionModal'));
+            const modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+            const modalEliminar = new bootstrap.Modal(document.getElementById('modalEliminar'));
+
+            // Mensajes de error para nueva acción
+            const newActionErrorsDiv = document.getElementById('newActionErrors');
+
+            // Crear nueva acción
+            document.getElementById('formNuevaAccion').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const data = new FormData(form);
+
+                fetch("{% url 'crear_accion_ajax' %}", {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // Asegúrate de que el token esté en el header para POST
+                    }
+                })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'ok') {
+                        calendar.refetchEvents(); // Actualiza los eventos del calendario
+                        nuevaAccionModal.hide(); // Cierra el modal
+                        form.reset(); // Limpia el formulario
+                        newActionErrorsDiv.classList.add('d-none'); // Oculta errores previos
+                        // Mostrar un mensaje de éxito con Django messages si es posible
+                        window.location.reload(); // Por ahora, recarga para mostrar mensajes de Django. Idealmente, solo mostraría un toast/alert sin recargar.
+                    } else {
+                        // Mostrar errores del formulario
+                        let errorsHtml = '<ul>';
+                        for (const field in result.errors) {
+                            result.errors[field].forEach(error => {
+                                errorsHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+                            });
+                        }
+                        errorsHtml += '</ul>';
+                        newActionErrorsDiv.innerHTML = errorsHtml;
+                        newActionErrorsDiv.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al crear acción:', error);
+                    newActionErrorsDiv.innerHTML = '<li>Error de red o del servidor. Inténtalo de nuevo.</li>';
+                    newActionErrorsDiv.classList.remove('d-none');
+                });
+            });
+
+            // Función para cargar el formulario de edición en el modal
+            window.editarAccion = function(id) {
+                fetch(`{% url 'editar_accion_ajax' 0 %}`.replace('0', id)) {# Usar replace para pasar el ID #}
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById('modalEditarContent').innerHTML = html;
+                        modalEditar.show();
+
+                        // Adjuntar listener al formulario de edición una vez cargado
+                        const formEditar = document.getElementById('formEditarAccion');
+                        if (formEditar) {
+                            formEditar.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                const formData = new FormData(this);
+                                fetch(this.action, { // La URL de acción ya viene en el formulario cargado
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-CSRFToken': '{{ csrf_token }}'
+                                    }
+                                })
+                                .then(res => res.json())
+                                .then(result => {
+                                    if (result.status === 'ok') {
+                                        calendar.refetchEvents();
+                                        modalEditar.hide();
+                                        // Mostrar mensaje de éxito si es necesario
+                                        window.location.reload(); // Recarga para ver mensajes de Django
+                                    } else {
+                                        // Mostrar errores dentro del modal de edición
+                                        const editActionErrorsDiv = formEditar.querySelector('#editActionErrors');
+                                        let errorsHtml = '<ul>';
+                                        for (const field in result.errors) {
+                                            result.errors[field].forEach(error => {
+                                                errorsHtml += `<li><strong>${field}:</strong> ${error}</li>`;
+                                            });
+                                        }
+                                        errorsHtml += '</ul>';
+                                        editActionErrorsDiv.innerHTML = errorsHtml;
+                                        editActionErrorsDiv.classList.remove('d-none');
+                                    }
+                                })
+                                .catch(error => console.error('Error al editar acción:', error));
+                            });
+                        }
+                    });
+            }
+
+            // Función para confirmar la eliminación
+            window.eliminarAccion = function(id) {
+                modalEliminar.show();
+                document.getElementById('btnConfirmarEliminar').onclick = () => {
+                    fetch(`{% url 'eliminar_accion_ajax' 0 %}`.replace('0', id), {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'ok') {
+                            calendar.refetchEvents();
+                            modalEliminar.hide();
+                            window.location.reload(); // Recarga para ver mensajes de Django
+                        } else {
+                            alert("Error al eliminar la acción: " + (data.error || "Error desconocido."));
+                        }
+                    })
+                    .catch(error => console.error('Error de red al eliminar:', error));
+                };
+            }
+        });
+    </script>
 {% endblock %}

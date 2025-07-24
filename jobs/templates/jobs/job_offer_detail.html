@@ -1,38 +1,173 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalles de la Oferta: {{ offer.title }} - OpenToJob{% endblock %}
+
+{% block extra_head %}
+    <style>
+        .detail-icon {
+            font-size: 1.1em;
+            width: 25px; /* Para alinear íconos si son de diferente tamaño */
+            text-align: center;
+        }
+        .offer-detail-section {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .offer-detail-section:last-child {
+            border-bottom: none;
+        }
+        .btn-action-group {
+            display: flex;
+            flex-wrap: wrap; /* Permite que los botones se envuelvan en pantallas pequeñas */
+            gap: 10px; /* Espacio entre botones */
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .description-content img {
+            max-width: 100%; /* Asegura que las imágenes en la descripción no se desborden */
+            height: auto;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<h1>Detalles de la oferta</h1>
+<div class="container mt-4">
+    {# Título de la Oferta #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-primary">{{ offer.title }}</h1>
+        {% if is_offer_creator %} {# Ahora controlado por la vista #}
+            {# Botón para Headhunters: Editar oferta #}
+            <a href="{% url 'edit_offer' offer_id=offer.id %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Editar Oferta
+            </a>
+        {% endif %}
+    </div>
 
-<p><strong>Título:</strong> {{ offer.title }}</p>
-<p><strong>Descripción:</strong> {{ offer.description }}</p>
-<p><strong>Salario:</strong> {{ offer.salary }}</p>
-<p><strong>Fecha de publicación:</strong> {{ offer.created_at }}</p>
-<p><strong>Empresa:</strong> {{ offer.company_name }}</p>
-<p><strong>Ubicación:</strong> {{ offer.location }}</p>
+    {# Tarjeta principal con detalles de la oferta #}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Detalles Principales</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6 offer-detail-section">
+                    <p class="mb-1"><i class="fas fa-building detail-icon text-muted"></i> <strong>Empresa:</strong> {{ offer.company_name }}</p>
+                    <p class="mb-1"><i class="fas fa-map-marker-alt detail-icon text-muted"></i> <strong>Ubicación:</strong> {{ offer.location|default:"No especificado" }}</p>
+                    <p class="mb-1"><i class="fas fa-briefcase detail-icon text-muted"></i> <strong>Modalidad:</strong> {{ offer.get_modality_display }}</p>
+                </div>
+                <div class="col-md-6 offer-detail-section">
+                    <p class="mb-1"><i class="fas fa-calendar-alt detail-icon text-muted"></i> <strong>Publicada el:</strong> {{ offer.created_at|date:"d M Y" }}</p>
+                    <p class="mb-1">
+                        <i class="fas fa-money-bill-wave detail-icon text-success"></i> 
+                        <strong>Salario:</strong> {% if offer.salary %}{{ offer.salary }}{% else %}<span class="text-muted">No especificado</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4">
+            <h5 class="mb-3 text-secondary"><i class="fas fa-align-left me-2"></i>Descripción del Puesto</h5>
+            <div class="description-content">
+                {{ offer.description|linebreaksbr }}
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            Última actualización: {{ offer.updated_at|date:"d M Y H:i" }}
+        </div>
+    </div>
 
+    {# Sección de Acciones (Postular / Panel Headhunter) #}
+    <div class="btn-action-group">
+        {% if user.is_authenticated %}
+            {% if not is_headhunter %} {# Ahora controlado por la vista #}
+                {% if user_has_applied %} {# Ahora controlado por la vista #}
+                    <button type="button" class="btn btn-info disabled">
+                        <i class="fas fa-check-circle me-2"></i>Ya has postulado (Estado: {{ user_application.get_estado_display }})
+                    </button>
+                {% else %}
+                    <a href="{% url 'apply_to_offer' offer_id=offer.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>Postular a esta Oferta
+                    </a>
+                {% endif %}
+            {% elif is_offer_creator %} {# Ahora controlado por la vista #}
+                <a href="{% url 'offer_applications' offer_id=offer.id %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-users me-2"></i>Ver Postulaciones ({{ offer.applications.count }})
+                </a>
+                <a href="{% url 'agenda' %}" class="btn btn-info btn-lg"> {# Enlace genérico a la agenda #}
+                    <i class="fas fa-calendar-plus me-2"></i>Ver Agenda
+                </a>
+                {# Si quieres una acción directa para agregar acción a esta oferta desde aquí, necesitarás una URL específica #}
+                {# <a href="{% url 'agregar_accion' oferta_id=offer.id %}" class="btn btn-info btn-lg">Agregar Acción</a> #}
+            {% endif %}
+        {% else %}
+            {# Lógica para Usuario No Autenticado #}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-success btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Inicia Sesión para Postular
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-outline-success btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Regístrate
+            </a>
+        {% endif %}
+    </div>
 
-{% if user.is_authenticated and user != offer.headhunter %}
-    <a href="{% url 'apply_to_offer' offer.id %}" class="btn btn-success">Postular</a>
-{% endif %}
+    <hr class="my-4">
 
-<hr>
+    {# Sección de Postulaciones (Solo visible para Headhunters creadores de la oferta) #}
+    {% if is_offer_creator %} {# Ahora controlado por la vista #}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-address-book me-2"></i>Candidaturas Recibidas ({{ offer.applications.count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if offer.applications.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Candidato</th>
+                                    <th>Fecha de Postulación</th>
+                                    <th>Estado Actual</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in offer.applications.all %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'cambiar_estado_candidatura' candidature_id=application.id %}" class="text-primary text-decoration-none fw-bold">
+                                            {{ application.user.get_full_name|default:application.user.username }}
+                                        </a>
+                                    </td>
+                                    <td>{{ application.fecha_aplicacion|date:"d M Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge badge-status {{ application.estado }}">
+                                            {{ application.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'cambiar_estado_candidatura' candidature_id=application.id %}" class="btn btn-sm btn-outline-primary" title="Gestionar estado de la candidatura">
+                                            <i class="fas fa-tasks"></i> Gestionar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info m-3" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> Todavía no hay postulaciones para esta oferta.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 
-{% if offer.applications.all %}
-<h2>Postulaciones</h2>
-<ul>
-    {% for application in offer.applications.all %}
-    <li>
-        <strong>{{ application.applicant.username }}</strong> - {{ application.applied_at|date:"d M Y H:i" }}
-        <br>
-        Mensaje: {{ application.message|default:"(sin mensaje)" }}
-        <br>
-        
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No hay aplicaciones para esta oferta.</p>
-{% endif %}
+    {# Enlace para volver #}
+    <div class="text-center mt-5 mb-3">
+        <a href="{% url 'job_offer_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a la Lista de Ofertas
+        </a>
+    </div>
 
-<a href="{% url 'job_offer_list' %}">Volver a la lista de ofertas</a>
+</div>
 {% endblock %}
